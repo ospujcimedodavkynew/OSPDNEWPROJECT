@@ -6,87 +6,103 @@ import SignaturePad from './SignaturePad';
 
 const ContractView: React.FC = () => {
     const { id } = useParams<{ id: string }>();
-    const { rentals, vehicles, customers, loading } = useData();
-    const [showCustomerSignaturePad, setShowCustomerSignaturePad] = useState(false);
-    const [showCompanySignaturePad, setShowCompanySignaturePad] = useState(false);
+    const { rentals, vehicles, customers } = useData();
+    const [showSignaturePad, setShowSignaturePad] = useState(false);
+    const [signature, setSignature] = useState<string | null>(null);
 
-    if (loading) return <div>Načítání...</div>;
+    // This is not efficient, but fine for this example. A real app would fetch by ID.
+    const rental = rentals.find(r => r.id === parseInt(id || ''));
+    const vehicle = rental ? vehicles.find(v => v.id === rental.vehicleId) : null;
+    const customer = rental ? customers.find(c => c.id === rental.customerId) : null;
 
-    const rental = rentals.find(r => r.id === id);
-    if (!rental) return <div>Smlouva nenalezena.</div>;
+    const handleSaveSignature = (dataUrl: string) => {
+        setSignature(dataUrl);
+        // In a real app, you would save this to the rental record
+        // e.g., updateRental(rental.id, { contract_signed_base64: dataUrl });
+        setShowSignaturePad(false);
+    };
 
-    const vehicle = vehicles.find(v => v.id === rental.vehicleId);
-    const customer = customers.find(c => c.id === rental.customerId);
 
-    if (!vehicle || !customer) return <div>Data pro smlouvu chybí.</div>;
-    
-    const handleSaveSignature = (type: 'customer' | 'company', dataUrl: string) => {
-        // In a real app, you would save this to the database
-        console.log(`Saving ${type} signature for rental ${id}:`, dataUrl.substring(0, 30) + '...');
-        if(type === 'customer') {
-            // Update local state or refetch for demo
-            rental.customer_signature = dataUrl;
-            setShowCustomerSignaturePad(false);
-        } else {
-            rental.company_signature = dataUrl;
-            setShowCompanySignaturePad(false);
-        }
+    if (!rental || !vehicle || !customer) {
+        return <div>Smlouva nenalezena.</div>;
     }
 
     return (
         <div>
-            <h1 className="text-3xl font-bold mb-6">Detail smlouvy o pronájmu</h1>
+            <div className="flex justify-between items-center mb-6">
+                <h1 className="text-3xl font-bold">Smlouva o pronájmu vozidla</h1>
+                <Button onClick={() => window.print()}>Tisk</Button>
+            </div>
+            
             <Card className="prose max-w-none">
-                <h2>Smlouva č. {rental.id}</h2>
-                <p><strong>Datum uzavření:</strong> {new Date(rental.startDate).toLocaleDateString()}</p>
-                
-                <h3>Předmět nájmu</h3>
-                <p>Vozidlo: {vehicle.brand}, {vehicle.year}</p>
-                <p>SPZ: {vehicle.license_plate}</p>
-                <p>VIN: {vehicle.vin}</p>
-                
-                <h3>Nájemce (Zákazník)</h3>
-                <p>Jméno: {customer.first_name} {customer.last_name}</p>
-                <p>Email: {customer.email}</p>
-                <p>Telefon: {customer.phone}</p>
-                
-                <h3>Doba nájmu</h3>
-                <p>Od: {new Date(rental.startDate).toLocaleString()}</p>
-                <p>Do: {new Date(rental.endDate).toLocaleString()}</p>
-                <p>Cena celkem: {rental.totalPrice} Kč</p>
-
-                <div className="grid grid-cols-2 gap-8 mt-12 not-prose">
+                <h2>Smluvní strany</h2>
+                <div className="grid grid-cols-2 gap-8">
                     <div>
-                        <h4 className="font-bold">Podpis zákazníka</h4>
-                        {rental.customer_signature ? (
-                            <img src={rental.customer_signature} alt="Podpis zákazníka" className="border" />
-                        ) : (
-                            showCustomerSignaturePad ? (
-                                <SignaturePad 
-                                    onSave={(data) => handleSaveSignature('customer', data)} 
-                                    onCancel={() => setShowCustomerSignaturePad(false)}
-                                />
-                            ) : (
-                                <Button onClick={() => setShowCustomerSignaturePad(true)}>Podepsat</Button>
-                            )
-                        )}
+                        <h3>Pronajímatel</h3>
+                        <p>
+                            <strong>RentalAdmin s.r.o.</strong><br />
+                            Adresa 123, 110 00 Praha 1<br />
+                            IČO: 12345678
+                        </p>
                     </div>
-                     <div>
-                        <h4 className="font-bold">Podpis pronajímatele</h4>
-                         {rental.company_signature ? (
-                            <img src={rental.company_signature} alt="Podpis pronajímatele" className="border" />
+                    <div>
+                        <h3>Nájemce</h3>
+                        <p>
+                            <strong>{customer.first_name} {customer.last_name}</strong><br />
+                            {customer.address}<br />
+                            Email: {customer.email}<br />
+                            Telefon: {customer.phone}<br />
+                            Číslo OP: {customer.id_card_number}<br />
+                            Číslo ŘP: {customer.drivers_license_number}
+                        </p>
+                    </div>
+                </div>
+
+                <h2>Předmět nájmu</h2>
+                <p>
+                    Pronajímatel přenechává nájemci do dočasného užívání následující vozidlo:
+                </p>
+                <ul>
+                    <li><strong>Vozidlo:</strong> {vehicle.brand} {vehicle.model}</li>
+                    <li><strong>Rok výroby:</strong> {vehicle.year}</li>
+                    <li><strong>SPZ:</strong> {vehicle.license_plate}</li>
+                    <li><strong>VIN:</strong> {vehicle.vin}</li>
+                </ul>
+                
+                <h2>Doba nájmu a cena</h2>
+                <p>
+                    Nájem se sjednává na dobu od <strong>{new Date(rental.startDate).toLocaleDateString()}</strong> do <strong>{new Date(rental.endDate).toLocaleDateString()}</strong>.
+                </p>
+                <p>
+                    Celková cena nájmu činí <strong>{rental.totalPrice} Kč</strong>.
+                </p>
+                
+                <h2>Podpisy</h2>
+                <div className="grid grid-cols-2 gap-8 pt-8">
+                    <div>
+                        <p>.................................................</p>
+                        <p>Pronajímatel</p>
+                    </div>
+                    <div>
+                        {signature ? (
+                           <img src={signature} alt="Podpis nájemce" className="h-24 border-b" />
                         ) : (
-                            showCompanySignaturePad ? (
-                                <SignaturePad 
-                                    onSave={(data) => handleSaveSignature('company', data)} 
-                                    onCancel={() => setShowCompanySignaturePad(false)}
-                                />
-                            ) : (
-                                <Button onClick={() => setShowCompanySignaturePad(true)}>Podepsat</Button>
-                            )
+                           <div className="h-24 border-b"></div>
+                        )}
+                        <p>Nájemce</p>
+                        {!signature && !showSignaturePad && (
+                            <Button onClick={() => setShowSignaturePad(true)} className="mt-2">
+                                Podepsat digitálně
+                            </Button>
                         )}
                     </div>
                 </div>
+                
+                {showSignaturePad && (
+                    <div className="mt-4">
+                        <SignaturePad onSave={handleSaveSignature} onCancel={() => setShowSignaturePad(false)} />
+                    </div>
+                )}
             </Card>
         </div>
     );

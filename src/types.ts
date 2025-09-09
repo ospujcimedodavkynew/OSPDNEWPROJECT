@@ -1,61 +1,50 @@
-
-export interface ServiceRecord {
-  id: string;
-  date: string;
-  description: string;
-  cost: number;
-}
-
 export interface Vehicle {
-  id: string;
-  brand: string;
-  license_plate: string;
-  vin: string;
-  year: number;
-  serviceHistory: ServiceRecord[];
-  pricing: {
-    perDay: number;
-    perHour?: number;
-  };
-  stk_date: string;
-  insurance_info: string;
-  vignette_until: string;
+    id: number;
+    brand: string;
+    model: string;
+    year: number;
+    license_plate: string;
+    vin: string;
+    color: string;
+    price_per_day: number;
+    available: boolean;
 }
 
 export interface Customer {
-  id: string;
-  first_name: string;
-  last_name: string;
-  email: string;
-  phone: string;
-  id_card_number: string;
-  drivers_license_number: string;
-  drivers_license_image_path?: string | null;
+    id: number;
+    first_name: string;
+    last_name: string;
+    email: string;
+    phone: string;
+    address: string;
+    id_card_number: string;
+    drivers_license_number: string;
 }
 
 export interface Rental {
-  id: string;
-  vehicleId: string;
-  customerId: string;
-  startDate: string;
-  endDate: string;
-  totalPrice: number;
-  status: 'active' | 'completed' | 'pending';
-  customer_signature?: string;
-  company_signature?: string;
-  digital_consent_at?: string | null;
+    id: number;
+    vehicleId: number;
+    customerId: number;
+    startDate: string;
+    endDate: string;
+    totalPrice: number;
+    status: 'active' | 'completed' | 'upcoming';
+    contract_signed_base64?: string | null;
+}
+
+export interface CustomerDetails {
+    first_name: string;
+    last_name: string;
+    email: string;
+    phone: string;
+    id_card_number: string;
+    drivers_license_number: string;
 }
 
 export interface RentalRequest {
-    id: string;
-    customer_details: Omit<Customer, 'id' | 'drivers_license_image_path'>;
-    drivers_license_image_base64: string | null;
-    digital_consent_at: string;
+    id: number;
+    customer_details: CustomerDetails;
     status: 'pending' | 'approved' | 'rejected';
-}
-
-export interface ToastMessage {
-  id: number;
-  message: string;
-  type: 'success' | 'error' | 'info';
+    drivers_license_image_base64?: string;
+    created_at: string;
 }

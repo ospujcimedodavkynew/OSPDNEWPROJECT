@@ -1,26 +1,42 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useData } from '../context/DataContext';
-import { Card, Button, Input, Label, Select } from './ui';
+import { Card, Button, Input, Label } from './ui';
 import { useNavigate } from 'react-router-dom';
 
 const NewRentalForm: React.FC = () => {
     const { vehicles, customers } = useData();
     const navigate = useNavigate();
-    const [selectedVehicle, setSelectedVehicle] = useState('');
-    const [selectedCustomer, setSelectedCustomer] = useState('');
+    const [selectedVehicleId, setSelectedVehicleId] = useState<string>('');
+    const [selectedCustomerId, setSelectedCustomerId] = useState<string>('');
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
+    const [totalPrice, setTotalPrice] = useState(0);
+
+    useEffect(() => {
+        if (selectedVehicleId && startDate && endDate) {
+            const vehicle = vehicles.find(v => v.id === parseInt(selectedVehicleId));
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            if (vehicle && start < end) {
+                const days = (end.getTime() - start.getTime()) / (1000 * 3600 * 24);
+                setTotalPrice(days * vehicle.price_per_day);
+            } else {
+                setTotalPrice(0);
+            }
+        }
+    }, [selectedVehicleId, startDate, endDate, vehicles]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        // Here you would typically save the new rental to your backend
+        // Here you would call a function from useData to add the new rental
         console.log({
-            vehicleId: selectedVehicle,
-            customerId: selectedCustomer,
+            vehicleId: parseInt(selectedVehicleId),
+            customerId: parseInt(selectedCustomerId),
             startDate,
             endDate,
+            totalPrice,
         });
-        alert('Nová půjčka vytvořena!');
+        // Redirect to rentals list
         navigate('/rentals');
     };
 
@@ -31,30 +47,53 @@ const NewRentalForm: React.FC = () => {
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
                         <Label htmlFor="vehicle">Vozidlo</Label>
-                        <Select id="vehicle" value={selectedVehicle} onChange={e => setSelectedVehicle(e.target.value)} required>
+                        <select
+                            id="vehicle"
+                            value={selectedVehicleId}
+                            onChange={(e) => setSelectedVehicleId(e.target.value)}
+                            required
+                            className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                        >
                             <option value="" disabled>Vyberte vozidlo</option>
-                            {vehicles.map(v => <option key={v.id} value={v.id}>{v.brand} - {v.license_plate}</option>)}
-                        </Select>
+                            {vehicles.filter(v => v.available).map(v => (
+                                <option key={v.id} value={v.id}>{v.brand} {v.model} ({v.license_plate})</option>
+                            ))}
+                        </select>
                     </div>
+
                     <div>
                         <Label htmlFor="customer">Zákazník</Label>
-                        <Select id="customer" value={selectedCustomer} onChange={e => setSelectedCustomer(e.target.value)} required>
+                        <select
+                            id="customer"
+                            value={selectedCustomerId}
+                            onChange={(e) => setSelectedCustomerId(e.target.value)}
+                            required
+                             className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                        >
                             <option value="" disabled>Vyberte zákazníka</option>
-                            {customers.map(c => <option key={c.id} value={c.id}>{c.first_name} {c.last_name}</option>)}
-                        </Select>
+                            {customers.map(c => (
+                                <option key={c.id} value={c.id}>{c.first_name} {c.last_name}</option>
+                            ))}
+                        </select>
                     </div>
+
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <Label htmlFor="start-date">Datum od</Label>
-                            <Input id="start-date" type="date" value={startDate} onChange={e => setStartDate(e.target.value)} required />
+                            <Label htmlFor="startDate">Datum od</Label>
+                            <Input id="startDate" type="date" value={startDate} onChange={e => setStartDate(e.target.value)} required />
                         </div>
                         <div>
-                            <Label htmlFor="end-date">Datum do</Label>
-                            <Input id="end-date" type="date" value={endDate} onChange={e => setEndDate(e.target.value)} required />
+                            <Label htmlFor="endDate">Datum do</Label>
+                            <Input id="endDate" type="date" value={endDate} onChange={e => setEndDate(e.target.value)} required />
                         </div>
                     </div>
+                    
+                    <div className="pt-4">
+                        <h3 className="text-lg font-semibold">Celková cena: {totalPrice} Kč</h3>
+                    </div>
+
                     <div className="flex justify-end pt-4">
-                        <Button type="submit">Vytvořit půjčku</Button>
+                        <Button type="submit" disabled={totalPrice <= 0}>Vytvořit půjčku</Button>
                     </div>
                 </form>
             </Card>
