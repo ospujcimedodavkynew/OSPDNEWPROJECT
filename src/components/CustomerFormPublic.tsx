@@ -1,14 +1,20 @@
 import React, { useState } from 'react';
 import { Card, Button, Input, Label } from './ui';
+import { useData } from '../context/DataContext';
+import { RentalRequest } from '../types';
+
+type PublicFormState = Omit<RentalRequest, 'id' | 'created_at' | 'status'>;
 
 const CustomerFormPublic: React.FC = () => {
-    const [formData, setFormData] = useState({
+    const { addRentalRequest } = useData();
+    const [formData, setFormData] = useState<PublicFormState>({
         first_name: '',
         last_name: '',
         email: '',
         phone: '',
         id_card_number: '',
         drivers_license_number: '',
+        digital_consent_at: '',
     });
     const [submitted, setSubmitted] = useState(false);
 
@@ -19,11 +25,10 @@ const CustomerFormPublic: React.FC = () => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        // In a real app, you would send this data to your backend (e.g., Supabase)
-        // to create a new rental_request.
-        console.log("Submitting rental request:", formData);
-
-        // This is just a mock submission
+        await addRentalRequest({
+            ...formData,
+            digital_consent_at: new Date().toISOString()
+        });
         setSubmitted(true);
     };
     

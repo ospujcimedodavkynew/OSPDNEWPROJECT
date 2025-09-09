@@ -1,6 +1,6 @@
 import React from 'react';
 import { RentalRequest } from '../types';
-import { Modal, Button } from './ui';
+import { Modal, Button, SecondaryButton } from './ui';
 
 interface RequestApprovalModalProps {
     isOpen: boolean;
@@ -20,31 +20,21 @@ const RequestApprovalModal: React.FC<RequestApprovalModalProps> = ({
     if (!request) return null;
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title="Schválení žádosti o půjčku">
+        <Modal isOpen={isOpen} onClose={onClose} title="Schválení žádosti o zápůjčku">
             <div>
-                <h3 className="font-bold text-lg">{request.customer_details.first_name} {request.customer_details.last_name}</h3>
-                <p>Email: {request.customer_details.email}</p>
-                <p>Telefon: {request.customer_details.phone}</p>
-                <p>Číslo OP: {request.customer_details.id_card_number}</p>
-                <p>Číslo ŘP: {request.customer_details.drivers_license_number}</p>
-
-                {request.drivers_license_image_base64 && (
-                    <div className="mt-4">
-                        <h4 className="font-semibold">Snímek řidičského průkazu</h4>
-                        <img 
-                            src={`data:image/jpeg;base64,${request.drivers_license_image_base64}`} 
-                            alt="Řidičský průkaz" 
-                            className="max-w-full h-auto border rounded mt-2"
-                        />
-                    </div>
-                )}
+                <h3 className="font-bold text-lg">{request.first_name} {request.last_name}</h3>
+                <p>Email: {request.email}</p>
+                <p>Telefon: {request.phone}</p>
+                <p>Číslo OP: {request.id_card_number}</p>
+                <p>Číslo ŘP: {request.drivers_license_number}</p>
+                <p className="text-sm text-text-secondary mt-2">Žádost vytvořena: {new Date(request.created_at).toLocaleString()}</p>
                 
                 <div className="flex justify-end space-x-2 pt-6">
-                    <Button variant="secondary" className="bg-red-500 hover:bg-red-600 text-white" onClick={() => onReject(request)}>
+                    <SecondaryButton onClick={() => onReject(request)}>
                         Zamítnout
-                    </Button>
+                    </SecondaryButton>
                     <Button onClick={() => onApprove(request)}>
-                        Schválit a vytvořit zákazníka
+                        Schválit
                     </Button>
                 </div>
             </div>

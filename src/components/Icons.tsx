@@ -8,8 +8,8 @@ export const DashboardIcon: React.FC = (props) => (
 
 export const FleetIcon: React.FC = (props) => (
     <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} {...props}>
-        <path d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0z" />
-        <path d="M21 12c0 4.418-4.03 8-9 8s-9-3.582-9-8 4.03-8 9-8 9 3.582 9 8z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M8 16l-4-4m0 0l4-4m-4 4h18" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M16 8l4 4m0 0l-4 4m4-4H2" />
     </svg>
 );
 
